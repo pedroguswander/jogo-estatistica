@@ -15,6 +15,22 @@ def recognize_pattern(points, pattern="square"):
 
     return prediction
 
+
+def identify_pattern(points):
+    """Try to identify which known pattern (if any) the stroke matches.
+
+    Returns a tuple (matched: bool, pattern: str|None).
+    """
+    # check each known pattern in a reasonable order
+    for p in ("square", "triangle", "circle", "z"):
+        try:
+            if recognize_pattern(points, pattern=p):
+                return True, p
+        except Exception:
+            # if a specific recognizer errors, skip it
+            continue
+    return False, None
+
 def recognize_square(points):
     if not points or len(points) < 8:
         return False
