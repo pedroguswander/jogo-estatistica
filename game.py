@@ -1,6 +1,7 @@
 import pygame
 from recognizer import recognize_pattern, identify_pattern
 from enemy import Enemy
+from constants import WINDOW_WIDTH, WINDOW_HEIGHT
 
 class InputHandler:
     """Handles mouse input for continuous drawing with left mouse button.
@@ -33,8 +34,8 @@ class InputHandler:
 
 class Game:
 
-    def __init__(self, window=(360, 640)):
-        self.window = window
+    def __init__(self):
+        self.window = (WINDOW_WIDTH, WINDOW_HEIGHT)
         self.screen = None
         self.font = None
         self.clock = None
@@ -43,7 +44,6 @@ class Game:
         # targets cycle through these patterns
         self.targets = ["square", "z", "circle", "v"]
         self.target_index = 0
-        self.running = False
         self.fps = 60
         # enemy spawning and management
         self.enemies = []
@@ -54,47 +54,46 @@ class Game:
         self.recognized = False
 
     def start(self):
-        """Initializes pygame and starts the game loop. Calls update every frame."""
-        pygame.init()
-        pygame.font.init()
+        """Prepare the game state. Expect `screen`, `font` and `clock` to be set by the StateManager.
 
-        self.screen = pygame.display.set_mode(self.window)
-        pygame.display.set_caption("My Pygame Window - Pattern Recognition")
-        self.font = pygame.font.Font(None, 36)
-        self.clock = pygame.time.Clock()
+        This method no longer initializes pygame or creates the screen. StateManager must set
+        `game.screen`, `game.font` and `game.clock` before calling `start()`.
+        """
+        # ensure required attributes exist (StateManager is expected to inject these)
+        if self.screen is None:
+            raise RuntimeError("Game.start() requires `screen` to be set by StateManager before calling.")
+        if self.clock is None:
+            # fallback: create a local clock if not provided
+            self.clock = pygame.time.Clock()
 
         # spawn first enemy
         self.enemies.append(Enemy.spawn(self.window[0]))
-        self.running = True
-        while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-
-                # let input handler process event; if it returns a finished stroke, check pattern
-                finished = self.input.handle_event(event)
-                if finished is not None:
-                    # identify which pattern (if any) the player drew
-                    matched, pattern = identify_pattern(finished)
-                    self.recognized = matched
-                    if matched:
-                        print(f"Pattern recognized: {pattern}")
-                        # try to destroy enemies under the stroke that have this weakness
-                        destroyed = self.handle_recognized_pattern(pattern)
-                        if destroyed > 0:
-                            # increment score by number destroyed
-                            self.score += destroyed
-                    # advance target only when recognized (keeps current behavior)
-
-            self.delta_time = self.clock.tick(self.fps) / 1000.0  # convert to seconds
-            self.update()
-            self.draw()
-
-        pygame.quit()
+        self.request_quit = False
 
     def update(self):
-        # Draw everything: background, current stroke and counter
-        self.screen.fill((0, 0, 0))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                # request the StateManager to stop the main loop
+                self.request_quit = True
+                return
+
+            # let input handler process event; if it returns a finished stroke, check pattern
+            finished = self.input.handle_event(event)
+            if finished is not None:
+                # identify which pattern (if any) the player drew
+                matched, pattern = identify_pattern(finished)
+                self.recognized = matched
+                if matched:
+                    print(f"Pattern recognized: {pattern}")
+                    # try to destroy enemies under the stroke that have this weakness
+                    destroyed = self.handle_recognized_pattern(pattern)
+                    if destroyed > 0:
+                        # increment score by number destroyed
+                        self.score += destroyed
+                # advance target only when recognized (keeps current behavior)
+
+        self.delta_time = self.clock.tick(self.fps) / 1000.0  # convert to seconds
 
         # Update spawn timer and spawn new enemies
         self.spawn_timer += self.delta_time
@@ -104,9 +103,9 @@ class Game:
 
         self.check_game_over()
 
-        # Update and draw enemies, remove inactive ones
 
     def draw(self):
+        self.screen.fill((0, 0, 0))
         # draw current stroke (while player holds left mouse)
         self.input.draw(self.screen)
         
@@ -130,10 +129,17 @@ class Game:
         return
 
     def check_game_over(self):
-        # Game over if any enemy reaches bottom of screen
+        # Game over if any non-defeated enemy reaches bottom of screen
         for enemy in self.enemies:
             if enemy.rect.bottom >= self.dead_line.y:
-                pass
+                if enemy.is_defeated:
+                    # Mark defeated enemies as inactive when they reach the deadline
+                    enemy.dead_line_reached = True
+                else:
+                    # Only trigger game over for non-defeated enemies
+                    self.request_state_change = "GAME_OVER"
+                    return True
+        return False
 
 
     def _on_pattern_recognized(self):
@@ -148,10 +154,10 @@ class Game:
 
         destroyed = 0
         for enemy in self.enemies:
-            if not enemy.active:
+            if not enemy.active or enemy.is_defeated:
                 continue
             if enemy.weakness == pattern:
-                enemy.active = False
+                enemy.defeat()  # Start defeat animation
                 destroyed += 1
         return destroyed
 
@@ -167,15 +173,6 @@ class Game:
             pygame.draw.rect(self.screen, color, rect, 2)
         elif w == "circle":
             pygame.draw.circle(self.screen, color, (cx, top - size//2), size//2, 2)
-        elif w == "z":
-            # draw a small Z
-            x1, y1 = cx - size//2, top - size
-            x2, y2 = cx + size//2, top - size
-            x3, y3 = cx - size//2, top
-            x4, y4 = cx + size//2, top
-            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
-            pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
-            pygame.draw.line(self.screen, color, (x3, y3), (x4, y4), 2)
         elif w == "v":
             # draw a small V
             x1, y1 = cx - size//2, top - size

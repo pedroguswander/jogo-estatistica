@@ -8,8 +8,6 @@ def recognize_pattern(points, pattern="square"):
         prediction = recognize_square(points)
     elif pattern == "circle":
         prediction = recognize_circle(points)
-    elif pattern == "z":
-        prediction = recognize_z(points)
     elif pattern == "v":
         prediction = recognize_v(points)
     elif pattern == "horizontal_line":
@@ -28,7 +26,7 @@ def identify_pattern(points):
     Returns a tuple (matched: bool, pattern: str|None).
     """
     # check each known pattern in a reasonable order
-    for p in ("square", "circle", "z", "v", "caret", "horizontal_line", "vertical_line"):
+    for p in ("square", "circle" "v", "caret", "horizontal_line", "vertical_line"):
         try:
             if recognize_pattern(points, pattern=p):
                 return True, p
@@ -148,9 +146,8 @@ def recognize_circle(points):
 
     return True
 
-
-def recognize_z(points):
-    """Detecta um traço similar a um 'Z' usando contagem de cantos e verificação de bounding box."""
+def recognize_v(points):
+    """Detecta um traço similar a um 'V' (ou '^') usando contagem de cantos."""
     
     # 1. Pré-processamento
     if not points or len(points) < 6:
@@ -169,11 +166,12 @@ def recognize_z(points):
     if diag == 0:
         return False
 
-    # 3. Verificação de Ponto Inicial/Final (ADAPTADO para 'Z')
+    # 3. Verificação de Ponto Inicial/Final (ADAPTADO para 'V')
     sx, sy = pts[0]
     ex, ey = pts[-1]
     end_dist = math.hypot(ex - sx, ey - sy)
-    if end_dist < diag * 0.5:  # O traço deve ser aberto (distância > 50% da diagonal)
+    # Um 'V' é uma forma aberta, então os pontos inicial e final devem ser distantes
+    if end_dist < diag * 0.4: 
         return False
 
     # 4. Reamostragem
@@ -181,7 +179,7 @@ def recognize_z(points):
     step = max(1, len(pts) // sample_count)
     sampled = pts[::step]
 
-    # 5. Detecção de Cantos
+    # 5. Detecção de Cantos (Helper)
     def angle(a, b, c):
         bax = a[0] - b[0]
         bay = a[1] - b[1]
@@ -195,118 +193,36 @@ def recognize_z(points):
         dot = max(-1.0, min(1.0, dot))
         return math.degrees(math.acos(dot))
 
+    # 6. Contagem de Cantos
     corners = 0
+    # Precisa de pelo menos 3 pontos na amostra para calcular um ângulo
+    if len(sampled) < 3:
+         return False
+         
     for i in range(1, len(sampled) - 1):
         a = sampled[i - 1]
         b = sampled[i]
         c = sampled[i + 1]
         ang = angle(a, b, c)
-        if 30 < ang < 150:
+        # Procurando por uma curva acentuada
+        if 30 < ang < 140:
             corners += 1
 
-    # 6. Verificações Geométricas (Contagem de Cantos)
-    if not (2 <= corners <= 3):
+    # 7. Verificações Geométricas (Contagem de Cantos)
+    # A principal característica de um 'V' é ter *um* canto principal.
+    # Permitimos 2 para lidar com algum ruído no traço.
+    if not (1 <= corners <= 2):
         return False
 
-    # 7. Verificações Geométricas (Proporção)
+    # 8. Verificações Geométricas (Proporção)
     if w == 0 or h == 0:
         return False
     ar = max(w, h) / min(w, h)
-    if ar > 2.5:
-        return False
-
-    # Se passou em todas as verificações, é provável que seja um 'Z'
-    return True
-
-def recognize_v(points):
-    """Detecta um traço 'V' verificando 1 canto principal no FUNDO."""
-    
-    # 1. Pré-processamento e Bounding Box
-    if not points or len(points) < 6:
-        return False
-    pts = [(float(x), float(y)) for x, y in points]
-    xs = [p[0] for p in pts]
-    ys = [p[1] for p in pts]
-    minx, maxx = min(xs), max(xs)
-    miny, maxy = min(ys), max(ys)
-    w = maxx - minx
-    h = maxy - miny
-    diag = math.hypot(w, h)
-    
-    # Se não houver diagonal, ou não houver altura, não pode ser um V
-    if diag == 0 or h == 0:
-        return False
-
-    # 2. Verificação de Forma Aberta
-    sx, sy = pts[0]
-    ex, ey = pts[-1]
-    end_dist = math.hypot(ex - sx, ey - sy)
-    if end_dist < diag * 0.4: 
-        return False
-
-    # 3. Reamostragem
-    sample_count = min(100, len(pts))
-    step = max(1, len(pts) // sample_count)
-    sampled = pts[::step]
-    if len(sampled) < 3:
-         return False
-
-    # 4. Helper de Ângulo
-    def angle(a, b, c):
-        bax = a[0] - b[0]
-        bay = a[1] - b[1]
-        bcx = c[0] - b[0]
-        bcy = c[1] - b[1]
-        da = math.hypot(bax, bay)
-        db = math.hypot(bcx, bcy)
-        if da == 0 or db == 0: return 0.0
-        dot = max(-1.0, min(1.0, (bax * bcx + bay * bcy) / (da * db)))
-        return math.degrees(math.acos(dot))
-
-    # 5. Contagem de Cantos
-    sharp_corners = []
-    for i in range(1, len(sampled) - 1):
-        a = sampled[i - 1]
-        b = sampled[i]
-        c = sampled[i + 1]
-        ang = angle(a, b, c)
-        if 30 < ang < 140:
-            sharp_corners.append(b) # Armazena o ponto do canto
-
-    corners = len(sharp_corners)
-    
-    if not (1 <= corners <= 3):
-        return False
-
-    # 6. Verificação de Agrupamento de Cantos (evita 'Z')
-    if corners > 1:
-        c_xs = [p[0] for p in sharp_corners]
-        c_ys = [p[1] for p in sharp_corners]
-        corner_w = max(c_xs) - min(c_xs)
-        corner_h = max(c_ys) - min(c_ys)
-        corner_diag = math.hypot(corner_w, corner_h) 
-        if corner_diag > diag * 0.40:
-            return False
-
-    # 7. ADICIONADO: Verificação da Posição Vertical do Canto
-    # O(s) canto(s) deve(m) estar no fundo do desenho.
-    c_ys = [p[1] for p in sharp_corners]
-    avg_corner_y = sum(c_ys) / len(c_ys)
-    
-    # Normaliza a posição y (0.0 = topo, 1.0 = fundo)
-    norm_corner_y = (avg_corner_y - miny) / h
-    
-    # Se o canto estiver na metade superior (y < 0.6), não é um 'V'.
-    if norm_corner_y < 0.6:
-        return False
-
-    # 8. Verificação de Proporção
-    if w == 0:
-        return False
-    ar = max(w, h) / min(w, h)
+    # Um 'V' pode ser largo ou estreito, então somos tolerantes
     if ar > 3.0: 
         return False
 
+    # Se passou em todas as verificações, é provável que seja um 'V'
     return True
 
 def recognize_caret(points):
