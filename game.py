@@ -52,6 +52,7 @@ class Game:
         # dead line: choose near the end of the screen
         self.dead_line = pygame.Vector2(self.window[0] - 15, self.window[1] - 15)
         self.recognized = False
+        self.delta_time = 0
 
     def start(self):
         """Prepare the game state. Expect `screen`, `font` and `clock` to be set by the StateManager.
@@ -187,6 +188,13 @@ class Game:
             x3, y3 = cx + size//2, top
             pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
             pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
+        elif w == "l":
+            x1, y1 = cx - size//2, top - size
+            x2, y2 = x1, top
+            x3, y3 = cx + size//2, top
+            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)  # linha vertical
+            pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
+
         elif w == "horizontal_line":
             # draw a small horizontal line
             x1, y1 = cx - size//2, top - size//2
