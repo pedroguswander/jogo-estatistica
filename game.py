@@ -41,7 +41,7 @@ class Game:
         self.input = InputHandler()
         self.score = 0
         # targets cycle through these patterns
-        self.targets = ["square", "z", "triangle", "circle"]
+        self.targets = ["square", "z", "triangle", "circle", "v"]
         self.target_index = 0
         self.running = False
         self.fps = 60
@@ -149,25 +149,6 @@ class Game:
         if self.recognized:
             self.target_index = (self.target_index + 1) % len(self.targets)
 
-    def draw_target(self):
-        """Draw a small guide symbol on the screen to indicate the current pattern the player should draw."""
-        # position and size for the guide
-        size = 80
-        x = self.window[0] - size - 20
-        y = 20
-        color = (100, 200, 255)
-        pattern = self.current_target()
-        if pattern == "square":
-            rect = pygame.Rect(x, y, size, size)
-            pygame.draw.rect(self.screen, color, rect, 3)
-        elif pattern == "triangle":
-            p1 = (x + size // 2, y)
-            p2 = (x, y + size)
-            p3 = (x + size, y + size)
-            pygame.draw.polygon(self.screen, color, [p1, p2, p3], 3)
-        elif pattern == "circle":
-            pygame.draw.circle(self.screen, color, (x + size // 2, y + size // 2), size // 2, 3)
-
     def handle_recognized_pattern(self, pattern):
         if not pattern:
             return 0
@@ -207,3 +188,20 @@ class Game:
             pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
             pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
             pygame.draw.line(self.screen, color, (x3, y3), (x4, y4), 2)
+        elif w == "v":
+            # draw a small V
+            x1, y1 = cx - size//2, top - size
+            x2, y2 = cx, top
+            x3, y3 = cx + size//2, top - size
+            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
+            pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
+        elif w == "horizontal_line":
+            # draw a small horizontal line
+            x1, y1 = cx - size//2, top - size//2
+            x2, y2 = cx + size//2, top - size//2
+            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
+        elif w == "vertical_line":
+            # draw a small vertical line
+            x1, y1 = cx, top - size//2
+            x2, y2 = cx, top + size//2
+            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)

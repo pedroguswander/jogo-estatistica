@@ -4,7 +4,7 @@ import random
 
 class Enemy:
     
-    FALL_SPEED = 150  # pixels per second
+    FALL_SPEED = 120  # pixels per second
     DEFAULT_SIZE = 50
 
     def __init__(self, x, y, width, height):
@@ -30,6 +30,6 @@ class Enemy:
         x = random.randint(0, screen_width - size)
         e = cls(x, -size, size, size)  # start above screen
         # assign a random weakness
-        e.weakness = random.choice(["square", "triangle", "circle", "z"])
+        e.weakness = random.choice(["square", "triangle", "circle", "z", "v", "horizontal_line", "vertical_line"])
         return e
 
