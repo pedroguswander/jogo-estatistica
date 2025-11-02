@@ -41,7 +41,7 @@ class Game:
         self.input = InputHandler()
         self.score = 0
         # targets cycle through these patterns
-        self.targets = ["square", "z", "triangle", "circle", "v"]
+        self.targets = ["square", "z", "circle", "v"]
         self.target_index = 0
         self.running = False
         self.fps = 60
@@ -85,7 +85,6 @@ class Game:
                             # increment score by number destroyed
                             self.score += destroyed
                     # advance target only when recognized (keeps current behavior)
-                    self._next_target()
 
             self.delta_time = self.clock.tick(self.fps) / 1000.0  # convert to seconds
             self.update()
@@ -142,12 +141,6 @@ class Game:
         # legacy hook - keep for visual feedback only
         # Additional visual feedback could be implemented here (flash, small animation).
 
-    def current_target(self):
-        return self.targets[self.target_index]
-
-    def _next_target(self):
-        if self.recognized:
-            self.target_index = (self.target_index + 1) % len(self.targets)
 
     def handle_recognized_pattern(self, pattern):
         if not pattern:
@@ -172,11 +165,6 @@ class Game:
         if w == "square":
             rect = pygame.Rect(cx - size//2, top - size, size, size)
             pygame.draw.rect(self.screen, color, rect, 2)
-        elif w == "triangle":
-            p1 = (cx, top - size)
-            p2 = (cx - size//2, top)
-            p3 = (cx + size//2, top)
-            pygame.draw.polygon(self.screen, color, [p1, p2, p3], 2)
         elif w == "circle":
             pygame.draw.circle(self.screen, color, (cx, top - size//2), size//2, 2)
         elif w == "z":

@@ -6,8 +6,6 @@ def recognize_pattern(points, pattern="square"):
 
     if pattern == "square":
         prediction = recognize_square(points)
-    elif pattern == "triangle":
-        prediction = recognize_triangle(points)
     elif pattern == "circle":
         prediction = recognize_circle(points)
     elif pattern == "z":
@@ -28,7 +26,7 @@ def identify_pattern(points):
     Returns a tuple (matched: bool, pattern: str|None).
     """
     # check each known pattern in a reasonable order
-    for p in ("square", "triangle", "circle", "z", "v", "horizontal_line", "vertical_line"):
+    for p in ("square", "circle", "z", "v", "horizontal_line", "vertical_line"):
         try:
             if recognize_pattern(points, pattern=p):
                 return True, p
@@ -104,70 +102,6 @@ def recognize_square(points):
         return False
 
     return True
-
-
-def recognize_triangle(points):
-    """Detect a roughly triangular stroke using corner counting and bounding box checks."""
-    if not points or len(points) < 6:
-        return False
-
-    pts = [(float(x), float(y)) for x, y in points]
-    xs = [p[0] for p in pts]
-    ys = [p[1] for p in pts]
-    minx, maxx = min(xs), max(xs)
-    miny, maxy = min(ys), max(ys)
-    w = maxx - minx
-    h = maxy - miny
-    diag = math.hypot(w, h)
-    if diag == 0:
-        return False
-
-    sx, sy = pts[0]
-    ex, ey = pts[-1]
-    end_dist = math.hypot(ex - sx, ey - sy)
-    if end_dist > diag * 0.35:
-        return False
-
-    # sample
-    sample_count = min(100, len(pts))
-    step = max(1, len(pts) // sample_count)
-    sampled = pts[::step]
-
-    def angle(a, b, c):
-        bax = a[0] - b[0]
-        bay = a[1] - b[1]
-        bcx = c[0] - b[0]
-        bcy = c[1] - b[1]
-        da = math.hypot(bax, bay)
-        db = math.hypot(bcx, bcy)
-        if da == 0 or db == 0:
-            return 0.0
-        dot = (bax * bcx + bay * bcy) / (da * db)
-        dot = max(-1.0, min(1.0, dot))
-        return math.degrees(math.acos(dot))
-
-    corners = 0
-    for i in range(1, len(sampled) - 1):
-        a = sampled[i - 1]
-        b = sampled[i]
-        c = sampled[i + 1]
-        ang = angle(a, b, c)
-        if ang > 30 and ang < 150:
-            corners += 1
-
-    # expect around 3 corners
-    if not (2 <= corners <= 4):
-        return False
-
-    # aspect ratio tolerant
-    if w == 0 or h == 0:
-        return False
-    ar = max(w, h) / min(w, h)
-    if ar > 2.5:  # triangles can be tall or wide, allow more deviation
-        return False
-
-    return True
-
 
 def recognize_circle(points):
     """Detect a roughly circular stroke by checking closure and radial variance around centroid."""

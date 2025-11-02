@@ -30,6 +30,6 @@ class Enemy:
         x = random.randint(0, screen_width - size)
         e = cls(x, -size, size, size)  # start above screen
         # assign a random weakness
-        e.weakness = random.choice(["square", "triangle", "circle", "z", "v", "horizontal_line", "vertical_line"])
+        e.weakness = random.choice(["square", "circle", "z", "v", "horizontal_line", "vertical_line"])
         return e
 
