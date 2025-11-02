@@ -1,7 +1,9 @@
 import pygame
+import score
 from recognizer import recognize_pattern, identify_pattern
 from enemy import Enemy
 from constants import WINDOW_WIDTH, WINDOW_HEIGHT
+
 
 class InputHandler:
     """Handles mouse input for continuous drawing with left mouse button.
@@ -40,7 +42,6 @@ class Game:
         self.font = None
         self.clock = None
         self.input = InputHandler()
-        self.score = 0
         # targets cycle through these patterns
         self.targets = ["square", "z", "circle", "v"]
         self.target_index = 0
@@ -58,12 +59,8 @@ class Game:
         self.kill_strike_time_init = 0
 
     def start(self):
-        """Prepare the game state. Expect `screen`, `font` and `clock` to be set by the StateManager.
+        score.init_score(0)
 
-        This method no longer initializes pygame or creates the screen. StateManager must set
-        `game.screen`, `game.font` and `game.clock` before calling `start()`.
-        """
-        # ensure required attributes exist (StateManager is expected to inject these)
         if self.screen is None:
             raise RuntimeError("Game.start() requires `screen` to be set by StateManager before calling.")
         if self.clock is None:
@@ -105,7 +102,7 @@ class Game:
     def handle_kill_enemy(self, destroyed):
         if destroyed > 0:
             # increment score by number destroyed
-            self.increment_socre(destroyed)
+            score.increment_score(destroyed)
             self.kill_strike = destroyed
             self.kill_strike_time_init = pygame.time.get_ticks()
 
@@ -132,9 +129,6 @@ class Game:
                     return True
         return False
 
-    def increment_socre(self, points):
-        self.score += points
-
     def handle_recognized_pattern(self, pattern):
         if not pattern:
             return 0
@@ -154,7 +148,7 @@ class Game:
         self.input.draw(self.screen)
         
         # draw score / counter
-        text = self.font.render(f"Acertos: {self.score}", True, (255, 255, 255))
+        text = self.font.render(f"Acertos: {score.get_score()}", True, (255, 255, 255))
         self.screen.blit(text, (10, 10))
 
         self.enemies = [enemy for enemy in self.enemies if enemy.active]
