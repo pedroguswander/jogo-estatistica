@@ -94,7 +94,7 @@ class Game:
                     destroyed = self.handle_recognized_pattern(pattern)
                     if destroyed > 0:
                         # increment score by number destroyed
-                        self.score += destroyed
+                        self.increment_socre(destroyed)
                         self.kill_strike = destroyed
                         self.kill_strike_time_init = pygame.time.get_ticks()
                 # advance target only when recognized (keeps current behavior)
@@ -149,12 +149,8 @@ class Game:
                     return True
         return False
 
-
-    def _on_pattern_recognized(self):
-        """Increment counter and (implicitly) draw via update. This is the hook when a pattern is recognized."""
-        # legacy hook - keep for visual feedback only
-        # Additional visual feedback could be implemented here (flash, small animation).
-
+    def increment_socre(self, points):
+        self.score += points
 
     def handle_recognized_pattern(self, pattern):
         if not pattern:
