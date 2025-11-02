@@ -183,6 +183,13 @@ class Game:
             x3, y3 = cx + size//2, top - size
             pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
             pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
+        elif w == "caret":
+            # draw a small caret (^)
+            x1, y1 = cx - size//2, top
+            x2, y2 = cx, top - size
+            x3, y3 = cx + size//2, top
+            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
+            pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
         elif w == "horizontal_line":
             # draw a small horizontal line
             x1, y1 = cx - size//2, top - size//2
