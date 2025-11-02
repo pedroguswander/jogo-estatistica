@@ -92,45 +92,28 @@ class Game:
                     print(f"Pattern recognized: {pattern}")
                     # try to destroy enemies under the stroke that have this weakness
                     destroyed = self.handle_recognized_pattern(pattern)
-                    if destroyed > 0:
-                        # increment score by number destroyed
-                        self.increment_socre(destroyed)
-                        self.kill_strike = destroyed
-                        self.kill_strike_time_init = pygame.time.get_ticks()
+                    self.handle_kill_enemy(destroyed)
                 # advance target only when recognized (keeps current behavior)
 
         self.delta_time = self.clock.tick(self.fps) / 1000.0  # convert to seconds
 
-        # Update spawn timer and spawn new enemies
-        self.spawn_timer += self.delta_time
-        if self.spawn_timer >= self.spawn_interval:
-            self.enemies.append(Enemy.spawn(self.window[0]))
-            self.spawn_timer = 0
+        self.spawn_new_enemies()
 
         self.check_game_over()
 
 
-    def draw(self):
-        self.screen.fill((0, 0, 0))
-        # draw current stroke (while player holds left mouse)
-        self.input.draw(self.screen)
-        
-        # draw score / counter
-        text = self.font.render(f"Acertos: {self.score}", True, (255, 255, 255))
-        self.screen.blit(text, (10, 10))
+    def handle_kill_enemy(self, destroyed):
+        if destroyed > 0:
+            # increment score by number destroyed
+            self.increment_socre(destroyed)
+            self.kill_strike = destroyed
+            self.kill_strike_time_init = pygame.time.get_ticks()
 
-        self.enemies = [enemy for enemy in self.enemies if enemy.active]
-        for enemy in self.enemies:
-            enemy.update(self.delta_time)
-            enemy.draw(self.screen)
-            # draw enemy weakness symbol above the enemy
-            self.draw_enemy_weakness(enemy)
-
-        pygame.draw.line(self.screen, (255, 0, 0), (0, self.dead_line.y), (self.window[0], self.dead_line.y), 2)
-
-        self.draw_kill_strike()
-
-        pygame.display.flip()
+    def spawn_new_enemies(self):
+        self.spawn_timer += self.delta_time
+        if self.spawn_timer >= self.spawn_interval:
+            self.enemies.append(Enemy.spawn(self.window[0]))
+            self.spawn_timer = 0
 
     def check_balloon_destroyed(self):
         # deprecated: handling is done in handle_recognized_pattern
@@ -164,6 +147,28 @@ class Game:
                 enemy.defeat()  # Start defeat animation
                 destroyed += 1
         return destroyed
+
+    def draw(self):
+        self.screen.fill((0, 0, 0))
+        # draw current stroke (while player holds left mouse)
+        self.input.draw(self.screen)
+        
+        # draw score / counter
+        text = self.font.render(f"Acertos: {self.score}", True, (255, 255, 255))
+        self.screen.blit(text, (10, 10))
+
+        self.enemies = [enemy for enemy in self.enemies if enemy.active]
+        for enemy in self.enemies:
+            enemy.update(self.delta_time)
+            enemy.draw(self.screen)
+            # draw enemy weakness symbol above the enemy
+            self.draw_enemy_weakness(enemy)
+
+        pygame.draw.line(self.screen, (255, 0, 0), (0, self.dead_line.y), (self.window[0], self.dead_line.y), 2)
+
+        self.draw_kill_strike()
+
+        pygame.display.flip()
 
     def draw_enemy_weakness(self, enemy):
         # small symbol drawn above enemy center
