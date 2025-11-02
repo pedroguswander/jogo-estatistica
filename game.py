@@ -53,6 +53,9 @@ class Game:
         self.dead_line = pygame.Vector2(self.window[0] - 15, self.window[1] - 15)
         self.recognized = False
         self.delta_time = 0
+        self.kill_strike = 0
+        self.kill_strike_time = 1000
+        self.kill_strike_time_init = 0
 
     def start(self):
         """Prepare the game state. Expect `screen`, `font` and `clock` to be set by the StateManager.
@@ -92,6 +95,8 @@ class Game:
                     if destroyed > 0:
                         # increment score by number destroyed
                         self.score += destroyed
+                        self.kill_strike = destroyed
+                        self.kill_strike_time_init = pygame.time.get_ticks()
                 # advance target only when recognized (keeps current behavior)
 
         self.delta_time = self.clock.tick(self.fps) / 1000.0  # convert to seconds
@@ -122,6 +127,8 @@ class Game:
             self.draw_enemy_weakness(enemy)
 
         pygame.draw.line(self.screen, (255, 0, 0), (0, self.dead_line.y), (self.window[0], self.dead_line.y), 2)
+
+        self.draw_kill_strike()
 
         pygame.display.flip()
 
@@ -205,3 +212,29 @@ class Game:
             x1, y1 = cx, top - size//2
             x2, y2 = cx, top + size//2
             pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
+
+    def draw_kill_strike(self):
+        text_string = ""
+        actual_time = pygame.time.get_ticks()
+
+        if self.kill_strike <= 1:
+            return
+
+        if self.kill_strike == 2:
+            text_string = "2 x COMBO"
+        elif self.kill_strike == 3: 
+            text_string = "3 x COMBO"
+
+        if text_string != "" and  actual_time - self.kill_strike_time_init < self.kill_strike_time:
+            texto_surface = self.font.render(text_string, True, (255, 255, 0)) # Amarelo, por exemplo
+
+            # Cria o Retângulo (Rect) e o centraliza na posição desejada
+            # (360, 640) parece ser a posição no seu jogo, vou assumir.
+            texto_rect = texto_surface.get_rect(center=(self.window[0]/2, self.window[1]/2))
+
+            # Desenha o texto na tela
+            self.screen.blit(texto_surface, texto_rect)
+            
+
+        
+        
