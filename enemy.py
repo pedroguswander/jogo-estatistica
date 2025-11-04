@@ -12,7 +12,7 @@ class Enemy:
     def __init__(self, x, y, width, height):
         self.rect = pygame.Rect(x, y, width, height)
         self.active = True
-        self.weakness = None  # will be set at spawn time
+        self.weakness = []  # will be set at spawn time
         self.is_defeated = False
         self.velocity = 0  # vertical velocity for defeated state
         self.dead_line_reached = False  # track if enemy has reached dead line
@@ -51,6 +51,19 @@ class Enemy:
         x = random.randint(0, screen_width - size)
         e = cls(x, -size, size, size)  # start above screen
         # assign a random weakness
-        e.weakness = random.choice(["square", "circle", "l", "caret", "horizontal_line", "vertical_line"])
+        special_spawn_chance = random.randint(1,2)
+
+        e.weakness.append(random.choice(["square","circle","l","caret","horizontal_line","vertical_line"]))
+
+        if special_spawn_chance == 2:
+            choice = random.choice(["square","circle","l","caret","horizontal_line","vertical_line"])
+
+            if choice != e.weakness[0]:
+                e.weakness.append(choice)
+
         return e
+
+    @classmethod    
+    def handle_special_spawn(cls):
+        pass
 

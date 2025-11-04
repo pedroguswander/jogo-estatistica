@@ -137,9 +137,15 @@ class Game:
         for enemy in self.enemies:
             if not enemy.active or enemy.is_defeated:
                 continue
-            if enemy.weakness == pattern:
+            if pattern in enemy.weakness:
+                enemy.weakness.remove(pattern)
+
+            if len(enemy.weakness) == 0:
                 enemy.defeat()  # Start defeat animation
                 destroyed += 1
+            else:
+                continue
+
         return destroyed
 
     def draw(self):
