@@ -1,5 +1,6 @@
 import pygame
 import random
+import score
 
 
 class Enemy:
@@ -51,19 +52,14 @@ class Enemy:
         x = random.randint(0, screen_width - size)
         e = cls(x, -size, size, size)  # start above screen
         # assign a random weakness
-        special_spawn_chance = random.randint(1,2)
 
         e.weakness.append(random.choice(["square","circle","l","caret","horizontal_line","vertical_line"]))
+        
+        choice = random.choice(["square","circle","l","caret","horizontal_line","vertical_line"])
 
-        if special_spawn_chance == 2:
-            choice = random.choice(["square","circle","l","caret","horizontal_line","vertical_line"])
+        if choice != e.weakness[0] and score.get_score() >= 7:
+            e.weakness.append(choice)
 
-            if choice != e.weakness[0]:
-                e.weakness.append(choice)
 
         return e
-
-    @classmethod    
-    def handle_special_spawn(cls):
-        pass
 
