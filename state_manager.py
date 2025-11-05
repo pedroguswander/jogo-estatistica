@@ -1,6 +1,7 @@
 from game import Game
 from game_over import GameOver
 from main_menu import MainMenu
+from stats_screen import StatsScreen
 from constants import *
 import pygame
 
@@ -8,6 +9,7 @@ state_dict = {
     "GAME": Game(),
     "GAME_OVER": GameOver(),
     "MAIN_MENU": MainMenu(),
+    "STATS": StatsScreen(),
 }
 
 class StateManager:

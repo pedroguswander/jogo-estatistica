@@ -1,6 +1,7 @@
 import pygame
 import score
 from recognizer import recognize_pattern, identify_pattern
+import stats_collector
 from enemy import Enemy
 from constants import WINDOW_WIDTH, WINDOW_HEIGHT
 
@@ -125,6 +126,13 @@ class Game:
                     enemy.dead_line_reached = True
                 else:
                     # Only trigger game over for non-defeated enemies
+                    # Record empirical run: number of enemies defeated until the loss
+                    defeated_count = sum(1 for e in self.enemies if getattr(e, 'is_defeated', False))
+                    try:
+                        stats_collector.record_run(defeated_count)
+                    except Exception:
+                        # don't crash the game if stats collector fails
+                        pass
                     self.request_state_change = "GAME_OVER"
                     return True
         return False

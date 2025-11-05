@@ -19,14 +19,16 @@ class MainMenu:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     self.request_state_change = "GAME"
+                elif event.key == pygame.K_s:
+                    # Open statistics screen
+                    self.request_state_change = "STATS"
 
     def draw(self):
         self.screen.fill((0, 0, 0))  # Clear screen with black
         text = self.font.render(self.title_screen, True, (255, 0, 0))
         text_rect = text.get_rect(center=(self.window[0] // 2, self.window[1] // 2))
         self.screen.blit(text, text_rect)
-
-        instruction = self.font.render("Press ENTER to start", True, (255, 255, 255))
+        instruction = self.font.render("Press ENTER to start   |   Press S for statistics", True, (255, 255, 255))
         instruction_rect = instruction.get_rect(center=(self.window[0] // 2, self.window[1] // 2 + 50))
         self.screen.blit(instruction, instruction_rect)
 
