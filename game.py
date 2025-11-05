@@ -58,6 +58,7 @@ class Game:
         self.kill_strike = 0
         self.kill_strike_time = 1000
         self.kill_strike_time_init = 0
+        self.enemy_weakness_offset_x = 8
 
     def start(self):
         score.init_score(0)
@@ -145,9 +146,15 @@ class Game:
         for enemy in self.enemies:
             if not enemy.active or enemy.is_defeated:
                 continue
-            if enemy.weakness == pattern:
+            if pattern in enemy.weakness:
+                enemy.weakness.remove(pattern)
+
+            if len(enemy.weakness) == 0:
                 enemy.defeat()  # Start defeat animation
                 destroyed += 1
+            else:
+                continue
+
         return destroyed
 
     def draw(self):
@@ -164,57 +171,13 @@ class Game:
             enemy.update(self.delta_time)
             enemy.draw(self.screen)
             # draw enemy weakness symbol above the enemy
-            self.draw_enemy_weakness(enemy)
+            enemy.draw_enemy_weakness(self.screen)
 
         pygame.draw.line(self.screen, (255, 0, 0), (0, self.dead_line.y), (self.window[0], self.dead_line.y), 2)
 
         self.draw_kill_strike()
 
         pygame.display.flip()
-
-    def draw_enemy_weakness(self, enemy):
-        # small symbol drawn above enemy center
-        cx = enemy.rect.centerx
-        top = enemy.rect.top - 8
-        size = 16
-        color = (255, 255, 0)
-        w = enemy.weakness
-        if w == "square":
-            rect = pygame.Rect(cx - size//2, top - size, size, size)
-            pygame.draw.rect(self.screen, color, rect, 2)
-        elif w == "circle":
-            pygame.draw.circle(self.screen, color, (cx, top - size//2), size//2, 2)
-        elif w == "v":
-            # draw a small V
-            x1, y1 = cx - size//2, top - size
-            x2, y2 = cx, top
-            x3, y3 = cx + size//2, top - size
-            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
-            pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
-        elif w == "caret":
-            # draw a small caret (^)
-            x1, y1 = cx - size//2, top
-            x2, y2 = cx, top - size
-            x3, y3 = cx + size//2, top
-            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
-            pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
-        elif w == "l":
-            x1, y1 = cx - size//2, top - size
-            x2, y2 = x1, top
-            x3, y3 = cx + size//2, top
-            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)  # linha vertical
-            pygame.draw.line(self.screen, color, (x2, y2), (x3, y3), 2)
-
-        elif w == "horizontal_line":
-            # draw a small horizontal line
-            x1, y1 = cx - size//2, top - size//2
-            x2, y2 = cx + size//2, top - size//2
-            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
-        elif w == "vertical_line":
-            # draw a small vertical line
-            x1, y1 = cx, top - size//2
-            x2, y2 = cx, top + size//2
-            pygame.draw.line(self.screen, color, (x1, y1), (x2, y2), 2)
 
     def draw_kill_strike(self):
         text_string = ""
