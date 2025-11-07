@@ -2,6 +2,8 @@ from game import Game
 from game_over import GameOver
 from main_menu import MainMenu
 from stats_screen import StatsScreen
+from chart_one import *
+from charts import *
 from constants import *
 import pygame
 
@@ -32,7 +34,7 @@ class StateManager:
         self.current_state.screen = self.screen
         self.current_state.font = self.font
         self.current_state.clock = self.clock
-        self.current_state.window = (WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.current_state.window = (WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT)
 
         self.start_state()
 
@@ -43,7 +45,7 @@ class StateManager:
     def change_state(self, new_state_name):
         if new_state_name in state_dict.keys():
             self.current_state = state_dict[new_state_name]
-            self.start = new_state_name
+            self.state = new_state_name
             # inject shared resources into the newly active state
             if hasattr(self, 'screen'):
                 self.current_state.screen = self.screen
@@ -64,6 +66,7 @@ class StateManager:
 
     def update(self):
         self.current_state.update()
+    
         # Check for quit request
         if getattr(self.current_state, 'request_quit', False):
             self.running = False
@@ -76,6 +79,14 @@ class StateManager:
 
     def draw(self):
         self.current_state.draw()
+
+        if self.state == "GAME":
+            draw_chart_one_border(self.screen)
+            draw_chart_two_border(self.screen)
+            draw_chart_three_border(self.screen)
+            draw_chart_four_border(self.screen)
+
+        pygame.display.flip()
 
     def main_game_loop(self):
         while self.running:

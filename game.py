@@ -3,7 +3,7 @@ import score
 from recognizer import recognize_pattern, identify_pattern
 import stats_collector
 from enemy import Enemy
-from constants import WINDOW_WIDTH, WINDOW_HEIGHT
+from constants import WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT
 
 
 class InputHandler:
@@ -38,7 +38,7 @@ class InputHandler:
 class Game:
 
     def __init__(self):
-        self.window = (WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.window = (WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT)
         self.screen = None
         self.font = None
         self.clock = None
@@ -177,7 +177,8 @@ class Game:
 
         self.draw_kill_strike()
 
-        pygame.display.flip()
+        self.draw_game_border()
+
 
     def draw_kill_strike(self):
         text_string = ""
@@ -200,6 +201,30 @@ class Game:
 
             # Desenha o texto na tela
             self.screen.blit(texto_surface, texto_rect)
+
+    def draw_game_border(self):
+        """Desenha um retângulo de 360x720 centralizado na tela (1920x1080)
+        para indicar a área de jogo."""
+        
+        # A cor da borda (por exemplo, azul neon)
+        border_color = (0, 150, 255)  # RGB para um azul claro/ciano
+        border_thickness = 4  # Espessura da borda
+
+        game_area_x = (self.window[0] - WINDOW_GAME_WIDTH) // 2
+        game_area_y = (self.window[1] -  WINDOW_GAME_HEIGHT) // 2
+
+        # Cria o objeto Rect para a borda
+        # Posição (x, y) e Dimensões (largura, altura)
+        border_rect = pygame.Rect(
+            game_area_x, 
+            game_area_y, 
+            WINDOW_GAME_WIDTH, 
+            WINDOW_GAME_HEIGHT
+        )
+        
+        # Desenha o retângulo na superfície da tela. O último parâmetro (thickness)
+        # desenha apenas o contorno (borda) em vez de um retângulo sólido.
+        pygame.draw.rect(self.screen, border_color, border_rect, border_thickness)
             
 
         
