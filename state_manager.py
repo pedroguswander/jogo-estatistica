@@ -81,7 +81,12 @@ class StateManager:
         self.current_state.draw()
 
         if self.state == "GAME":
-            draw_chart_one_border(self.screen)
+            # draw the live statistical chart (chart area is kept inside chart_one.chart1_rect)
+            try:
+                draw_chart_one(self.screen, self.font)
+            except Exception:
+                # fallback to drawing just the border if chart drawing fails for any reason
+                draw_chart_one_border(self.screen)
             draw_chart_two_border(self.screen)
             draw_chart_three_border(self.screen)
             draw_chart_four_border(self.screen)

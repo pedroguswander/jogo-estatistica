@@ -6,3 +6,4 @@ if __name__ == "__main__":
     state_manager = StateManager()
     state_manager.start()
     state_manager.main_game_loop()
+

@@ -134,7 +134,7 @@ class Game:
                     except Exception:
                         # don't crash the game if stats collector fails
                         pass
-                    self.request_state_change = "GAME_OVER"
+                    self.request_state_change = "GAME"
                     return True
         return False
 
