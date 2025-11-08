@@ -1,26 +1,31 @@
 import pygame
+from constants import WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT
 
 
 class GameOver:
-    def __init__(self):
-        self.screen = None
-        self.font = None
-        self.clock = None
-        self.window = None
+    def __init__(self, state_manager):
+        self.state_manager = state_manager
+        self.screen = state_manager.screen
+        self.font = state_manager.font
+        self.clock = state_manager.clock
+        self.window = (WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT)
         
     def start(self):
-        if self.screen is None or self.font is None:
-            raise RuntimeError("GameOver.start() requires screen and font to be set by StateManager")
+        pass
+        
+    def run(self, events):
+        self.update(events)
+        self.draw(events)
             
-    def update(self):
-        for event in pygame.event.get():
+    def update(self, events):
+        for event in events:
             if event.type == pygame.QUIT:
-                self.request_quit = True
+                pass
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    self.request_state_change = "MAIN_MENU"
+                    self.state_manager.set_state("MAIN_MENU")
                     
-    def draw(self):
+    def draw(self, events):
         self.screen.fill((0, 0, 0))  # Clear screen with black
         text = self.font.render("GAME OVER", True, (255, 0, 0))
         text_rect = text.get_rect(center=(self.window[0] // 2, self.window[1] // 2))

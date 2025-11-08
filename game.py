@@ -4,7 +4,8 @@ from recognizer import recognize_pattern, identify_pattern
 import stats_collector
 from enemy import Enemy
 from constants import WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT
-
+from charts import draw_chart_two_border, draw_chart_three_border, draw_chart_four_border
+from chart_one import draw_chart_one_border
 
 class InputHandler:
     """Handles mouse input for continuous drawing with left mouse button.
@@ -37,11 +38,13 @@ class InputHandler:
 
 class Game:
 
-    def __init__(self):
+    def __init__(self, state_manager):
+        self.state_manager = state_manager
+
         self.window = (WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT)
-        self.screen = None
-        self.font = None
-        self.clock = None
+        self.screen = state_manager.screen
+        self.font = state_manager.font
+        self.clock = state_manager.clock
         self.input = InputHandler()
         # targets cycle through these patterns
         self.targets = ["square", "z", "circle", "v"]
@@ -59,28 +62,22 @@ class Game:
         self.kill_strike_time = 1000
         self.kill_strike_time_init = 0
         self.enemy_weakness_offset_x = 8
+        self.start()
 
     def start(self):
         score.init_score(0)
-
-        if self.screen is None:
-            raise RuntimeError("Game.start() requires `screen` to be set by StateManager before calling.")
-        if self.clock is None:
-            # fallback: create a local clock if not provided
-            self.clock = pygame.time.Clock()
 
         # spawn first enemy
         self.enemies.append(Enemy.spawn(self.window[0]))
         self.request_quit = False
 
-    def update(self):
+    def run(self, events):
+        self.update(events)
+        self.draw(events)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                # request the StateManager to stop the main loop
-                self.request_quit = True
-                return
+    def update(self, events):
 
+        for event in events:
             # let input handler process event; if it returns a finished stroke, check pattern
             finished = self.input.handle_event(event)
             if finished is not None:
@@ -134,7 +131,7 @@ class Game:
                     except Exception:
                         # don't crash the game if stats collector fails
                         pass
-                    self.request_state_change = "GAME"
+                    self.state_manager.set_state("GAME_OVER")
                     return True
         return False
 
@@ -157,7 +154,7 @@ class Game:
 
         return destroyed
 
-    def draw(self):
+    def draw(self, events):
         self.screen.fill((0, 0, 0))
         # draw current stroke (while player holds left mouse)
         self.input.draw(self.screen)
@@ -178,6 +175,13 @@ class Game:
         self.draw_kill_strike()
 
         self.draw_game_border()
+
+        draw_chart_two_border(self.screen)
+        draw_chart_three_border(self.screen)
+        draw_chart_four_border(self.screen)
+        draw_chart_one_border(self.screen)
+
+        pygame.display.flip()
 
 
     def draw_kill_strike(self):

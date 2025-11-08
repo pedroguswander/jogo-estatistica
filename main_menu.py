@@ -1,26 +1,33 @@
 import pygame
+from constants import WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT
 
 class MainMenu:
-    def __init__(self):
-        self.screen = None
-        self.font = None
-        self.clock = None
-        self.window = None
+    def __init__(self, state_manager):
+        self.state_manager = state_manager
+        self.screen = state_manager.screen
+        self.font = state_manager.font
+        self.clock = state_manager.clock
+        self.window = (WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT)
         self.title_screen = "Magic Touch: Runner for Hire"
 
     def start(self):
         if self.screen is None or self.font is None:
             raise RuntimeError("MainMenu.start() requires screen and font to be set by StateManager")
         
-    def update(self):
-        for event in pygame.event.get():
+    def run(self, events):
+        self.update(events)
+        self.draw(events)
+        
+    def update(self, events):
+        for event in events:
             if event.type == pygame.QUIT:
-                self.request_quit = True
+                pass
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    self.request_state_change = "GAME"
+                    self.state_manager.set_state("GAME")
+                    self.state_manager.reset_state("GAME")
 
-    def draw(self):
+    def draw(self, events):
         self.screen.fill((0, 0, 0))  # Clear screen with black
         text = self.font.render(self.title_screen, True, (255, 0, 0))
         text_rect = text.get_rect(center=(self.window[0] // 2, self.window[1] // 2))

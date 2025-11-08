@@ -6,21 +6,10 @@ from chart_one import *
 from charts import *
 from constants import *
 import pygame
-
-state_dict = {
-    "GAME": Game(),
-    "GAME_OVER": GameOver(),
-    "MAIN_MENU": MainMenu(),
-    "STATS": StatsScreen(),
-}
+import sys
 
 class StateManager:
     def __init__(self):
-        self.state = "GAME"
-        self.current_state = state_dict[self.state]
-        self.running = True
-
-    def start(self):
         pygame.init()
         pygame.font.init()
 
@@ -30,72 +19,33 @@ class StateManager:
         # create a clock and inject common dependencies into the starting state
         self.clock = pygame.time.Clock()
 
-        # inject common objects into the state instance so states don't have to initialize pygame
-        self.current_state.screen = self.screen
-        self.current_state.font = self.font
-        self.current_state.clock = self.clock
-        self.current_state.window = (WINDOW_GAME_WIDTH, WINDOW_GAME_HEIGHT)
+        self.state_dict = {
+            "GAME": Game(self),
+            "GAME_OVER": GameOver(self),
+            "MAIN_MENU": MainMenu(self),
+            "STATS": StatsScreen(),
+        }
 
-        self.start_state()
+        self.current_state = "GAME"
 
-    def start_state(self):
-        # call the state's start method (it should assume screen/font/clock were injected)
-        self.current_state.start()
         
-    def change_state(self, new_state_name):
-        if new_state_name in state_dict.keys():
-            self.current_state = state_dict[new_state_name]
-            self.state = new_state_name
-            # inject shared resources into the newly active state
-            if hasattr(self, 'screen'):
-                self.current_state.screen = self.screen
-            if hasattr(self, 'font'):
-                self.current_state.font = self.font
-            if hasattr(self, 'clock'):
-                self.current_state.clock = self.clock
-            if hasattr(self, 'screen'):
-                self.current_state.window = (WINDOW_WIDTH, WINDOW_HEIGHT)
-            # call start for the new state
-            try:
-                self.start_state()
-            except Exception:
-                # ignore start errors for states that don't implement start()
-                pass
-        else:
-            raise ValueError(f"State '{new_state_name}' does not exist.")
-
-    def update(self):
-        self.current_state.update()
+    def get_state(self):
+        return self.current_state
     
-        # Check for quit request
-        if getattr(self.current_state, 'request_quit', False):
-            self.running = False
-        # Check for state change request
-        if hasattr(self.current_state, 'request_state_change'):
-            new_state = self.current_state.request_state_change
-            print(new_state)
-            self.current_state.request_state_change = None
-            self.change_state(new_state)
+    def set_state(self, next_state):
+        self.current_state = next_state
 
-    def draw(self):
-        self.current_state.draw()
-
-        if self.state == "GAME":
-            # draw the live statistical chart (chart area is kept inside chart_one.chart1_rect)
-            try:
-                draw_chart_one(self.screen, self.font)
-            except Exception:
-                # fallback to drawing just the border if chart drawing fails for any reason
-                draw_chart_one_border(self.screen)
-            draw_chart_two_border(self.screen)
-            draw_chart_three_border(self.screen)
-            draw_chart_four_border(self.screen)
-
-        pygame.display.flip()
+    def reset_state(self, state):
+        self.state_dict[self.current_state](self)
 
     def main_game_loop(self):
-        while self.running:
-            self.update()
-            self.draw()
+        while True:
+            events = pygame.event.get()
 
-        pygame.quit()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            self.state_dict[self.current_state].run(events)
+
